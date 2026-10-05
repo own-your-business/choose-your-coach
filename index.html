@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose Your Franchise Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B111E;--card:#131C2E;--gold:#D4AF37;--text:#F1F5F9;--muted:#94A3B8;--line:rgba(212,175,55,.25);--red:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+body{background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+h1,h2,h3{font-family:'Cinzel',serif}
+main{max-width:1100px;margin:0 auto;padding:4rem 6%}
+.hero{text-align:center;margin-bottom:3rem}
+.hero h1{font-size:2.4rem;margin-bottom:.75rem}
+.hero p{color:var(--muted);max-width:560px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2rem;text-align:center}
+.card:hover{border-color:var(--gold)}
+.avatar{width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:1.4rem;margin:0 auto 1rem}
+.card h3{font-size:1.2rem;margin-bottom:1.25rem}
+.btn{display:inline-block;background:linear-gradient(135deg,#D4AF37,#AA820A);color:#0B111E;padding:.7rem 1.3rem;border-radius:6px;font-weight:700;text-decoration:none;border:0;cursor:pointer;font-size:.9rem}
+.btn:hover{filter:brightness(1.15)}
+.btn:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+.btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}
+.muted{color:var(--muted);font-size:.9rem}
+footer{text-align:center;padding:2rem;font-size:.8rem}
+footer a{color:var(--muted)}
+input{width:100%;padding:.7rem .9rem;background:var(--bg);border:1px solid var(--line);color:#fff;border-radius:6px;font-size:.9rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.5rem;margin-bottom:2rem}
+.panel h2{font-size:1.3rem;margin-bottom:1rem}
+.row{display:grid;grid-template-columns:1fr 2fr auto;gap:.75rem;align-items:center;padding:.75rem 0;border-top:1px solid var(--line)}
+.row .acts{display:flex;gap:.5rem}
+.add{display:grid;grid-template-columns:1fr 2fr auto;gap:.75rem}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.overlay{position:fixed;inset:0;background:rgba(11,17,30,.9);display:none;align-items:center;justify-content:center;z-index:10}
+.modal{background:var(--card);border:1px solid var(--gold);border-radius:12px;padding:2rem;width:90%;max-width:380px}
+.modal h3{margin-bottom:1rem}
+.modal .acts{display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end}
+@media(max-width:760px){.row,.add{grid-template-columns:1fr}.hero h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<div class="overlay" id="pw"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+  <h3 id="pwTitle">Admin password</h3>
+  <p class="muted" id="pwMsg"></p>
+  <input type="password" id="pwIn" autocomplete="off" aria-label="Admin password">
+  <div class="acts"><button class="btn ghost" id="pwNo">Cancel</button><button class="btn" id="pwOk">Confirm</button></div>
+</div></div>
+
+<script>
+// Paste your Google Apps Script Web App URL here (see setup steps). Leave empty to preview with sample data.
+const API = 'https://script.google.com/macros/s/AKfycbyoDI-fDr8k3fR8aZZtUh_vbO19vzb1j3qdJQF4_6OSmZbksCHrmSX4boqKGX12mdWVhw/exec';
+
+const SEED = [
+  {id:'1',name:'Bob Bernotas',calendar:'https://calendly.com/bob-bernotas/15-min-franchise-call'},
+  {id:'2',name:'Brendan Meyer',calendar:'https://calendly.com/brendan-meyer-tpf/15-min-franchise-call-lir'},
+  {id:'3',name:'Todd Weiss',calendar:'https://calendly.com/todd-tpf/15-min-franchise-call'},
+  {id:'4',name:'Doug Stout',calendar:'https://calendly.com/doug-stout/15-min-franchise-call'},
+  {id:'5',name:'Mike Ciccarelli',calendar:'https://calendly.com/mike-ciccarelli/15-min-franchise-call'},
+  {id:'6',name:'Marc Desormeaux',calendar:'https://calendly.com/marc-desormeaux/15-min-franchise-call'}
+];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https:\/\//i.test(u) ? u : '#';
+let all = [];
+
+async function call(body) {
+  if (!API) throw new Error('Backend URL is not set yet. See setup steps.');
+  const r = await fetch(API, {method:'POST', body: JSON.stringify(body)});
+  return r.json();
+}
+
+function askPw(msg) {
+  return new Promise(res => {
+    $('#pwMsg').textContent = msg || '';
+    const i = $('#pwIn'); i.value = '';
+    $('#pw').style.display = 'flex'; i.focus();
+    const done = v => { $('#pw').style.display = 'none'; res(v); };
+    $('#pwOk').onclick = () => done(i.value);
+    $('#pwNo').onclick = () => done(null);
+    i.onkeydown = e => { if (e.key === 'Enter') done(i.value); if (e.key === 'Escape') done(null); };
+  });
+}
+
+async function home() {
+  $('#app').innerHTML = `<div class="hero"><h1>Choose Your Franchise Advisor</h1><p>Pick an advisor below and book a free 15-minute call.</p></div><div class="grid" id="grid"><p class="muted">Loading…</p></div>`;
+  let list = SEED;
+  try { if (API) list = await (await fetch(API)).json(); } catch (e) { $('#grid').innerHTML = '<p class="muted">Could not load advisors. Please refresh.</p>'; return; }
+  $('#grid').innerHTML = list.length ? list.map(c => `
+    <div class="card"><div class="avatar">${esc(c.name.trim().charAt(0))}</div><h3>${esc(c.name)}</h3>
+    <a class="btn" href="${esc(safeUrl(c.calendar))}" target="_blank" rel="noopener">Book a 15-min call</a></div>`).join('')
+    : '<p class="muted">No advisors available right now.</p>';
+  $('#app').insertAdjacentHTML('beforeend', '<footer><a href="#/admin">Admin</a></footer>');
+}
+
+async function login() {
+  const pw = await askPw('Enter the admin password to continue.');
+  if (pw === null) { location.hash = ''; return; }
+  try {
+    const r = await call({action:'list', password:pw});
+    if (!r.ok) { alert(r.error || 'Wrong password'); location.hash = ''; return; }
+    all = r.clients; admin();
+  } catch (e) { alert(e.message); location.hash = ''; }
+}
+
+async function act(action, data, msg) {
+  const pw = await askPw(msg);
+  if (pw === null) return;
+  try {
+    const r = await call({action, password:pw, ...data});
+    if (!r.ok) { alert(r.error || 'Failed'); return; }
+    all = r.clients; admin();
+  } catch (e) { alert(e.message); }
+}
+
+function admin() {
+  const active = all.filter(c => c.status === 'active'), arch = all.filter(c => c.status !== 'active');
+  $('#app').innerHTML = `
+  <div class="top"><h1>Admin</h1><a class="btn ghost" href="#">View home page</a></div>
+  <div class="panel"><h2>Add client</h2><div class="add">
+    <input id="addName" placeholder="Name" aria-label="Client name"><input id="addLink" placeholder="https://calendly.com/…" aria-label="Calendar link">
+    <button class="btn" id="addBtn">Add client</button></div></div>
+  <div class="panel"><h2>Active (${active.length})</h2>${active.map(c => `
+    <div class="row"><input value="${esc(c.name)}" id="n-${esc(c.id)}" aria-label="Name"><input value="${esc(c.calendar)}" id="l-${esc(c.id)}" aria-label="Calendar link">
+    <div class="acts"><button class="btn" data-edit="${esc(c.id)}">Save changes</button><button class="btn danger" data-arch="${esc(c.id)}">Remove</button></div></div>`).join('') || '<p class="muted">No active clients.</p>'}</div>
+  <div class="panel"><h2>Archive (${arch.length})</h2>${arch.map(c => `
+    <div class="row"><strong>${esc(c.name)}</strong><span class="muted">${esc(c.calendar)}</span>
+    <div class="acts"><button class="btn" data-rest="${esc(c.id)}">Restore</button></div></div>`).join('') || '<p class="muted">Archive is empty.</p>'}</div>`;
+  $('#addBtn').onclick = () => {
+    const name = $('#addName').value.trim(), calendar = $('#addLink').value.trim();
+    if (!name || !/^https:\/\//i.test(calendar)) return alert('Enter a name and a calendar link starting with https://');
+    act('add', {name, calendar}, 'Confirm to add this client.');
+  };
+  document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
+    const id = b.dataset.edit, name = $('#n-' + id).value.trim(), calendar = $('#l-' + id).value.trim();
+    if (!name || !/^https:\/\//i.test(calendar)) return alert('Enter a name and a calendar link starting with https://');
+    act('edit', {id, name, calendar}, 'Confirm to save changes.');
+  });
+  document.querySelectorAll('[data-arch]').forEach(b => b.onclick = () => act('archive', {id:b.dataset.arch}, 'Confirm to remove this client from the home page. They move to the archive.'));
+  document.querySelectorAll('[data-rest]').forEach(b => b.onclick = () => act('restore', {id:b.dataset.rest}, 'Confirm to restore this client to the home page.'));
+}
+
+function route() { location.hash === '#/admin' ? login() : home(); }
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
