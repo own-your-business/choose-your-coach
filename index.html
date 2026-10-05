@@ -130,7 +130,7 @@
         .cta-btn-gold {
             background: linear-gradient(135deg, #D4AF37, #AA820A);
             color: #0B111E;
-            padding: 0.7rem 1.5rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 6px;
             font-weight: 700;
             text-decoration: none;
@@ -142,6 +142,7 @@
             justify-content: center;
             gap: 0.5rem;
             font-size: 0.95rem;
+            width: 100%;
         }
 
         .cta-btn-gold:hover {
@@ -223,10 +224,10 @@
             font-weight: 600;
         }
 
-        /* Individual Client Profile Detail View */
+        /* Individual Client Profile Detail & Lead Capture Form View */
         .client-detail-view {
             display: none;
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -244,13 +245,13 @@
 
         .profile-header {
             text-align: center;
-            margin-bottom: 2.5rem;
-            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .profile-header h2 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             margin-bottom: 0.5rem;
         }
 
@@ -267,23 +268,51 @@
             letter-spacing: 1px;
         }
 
-        .booking-section {
+        .lead-form {
             background: rgba(11, 17, 30, 0.6);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 2rem;
+        }
+
+        .lead-form h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
             text-align: center;
         }
 
-        .booking-section h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .booking-section p {
+        .lead-form p {
             color: var(--text-muted);
             margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .form-row {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-row label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .form-row input, .form-row textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            outline: none;
             font-size: 0.95rem;
+        }
+
+        .form-row input:focus, .form-row textarea:focus {
+            border-color: var(--gold-primary);
         }
 
         /* Admin Dashboard View */
@@ -494,7 +523,7 @@
             <div class="section-header">
                 <div class="gold-text" style="text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.5rem;">Verified Partners</div>
                 <h2>Explore Active Franchise Advisors</h2>
-                <p>Select an advisor to view their complete profile details and schedule a direct consultation session.</p>
+                <p>Select an advisor to input your contact details and schedule a direct consultation session.</p>
             </div>
 
             <div class="client-grid" id="publicClientGrid">
@@ -502,7 +531,7 @@
             </div>
         </div>
 
-        <!-- INDIVIDUAL CLIENT PROFILE DETAIL VIEW -->
+        <!-- INDIVIDUAL CLIENT PROFILE & LEAD CAPTURE FORM VIEW -->
         <div id="clientDetailView" class="client-detail-view">
             <div class="back-nav">
                 <button class="btn-outline" onclick="showPublicDirectory()">
@@ -511,7 +540,7 @@
             </div>
 
             <div class="profile-container" id="profileContainerContent">
-                <!-- Dynamically populated client details and booking link -->
+                <!-- Dynamically populated -->
             </div>
         </div>
 
@@ -586,7 +615,6 @@
 
     <!-- App Logic -->
     <script>
-        // Default Client Dataset without LinkedIn fields
         const defaultClients = [
             { id: 1, name: "Marc Desormeaux", role: "Franchise Consultant", calendly: "https://calendly.com/marc-desormeaux/15-min-franchise-call", status: "active" },
             { id: 2, name: "Todd Weiss", role: "CFA Franchise Advisor", calendly: "https://calendly.com/todd-tpf/15-min-franchise-call", status: "active" },
@@ -598,12 +626,13 @@
             { id: 8, name: "Bruce Brady", role: "Atlanta Franchise Lead", calendly: "https://calendly.com/bruce-brady/15-min-franchise-call", status: "active" }
         ];
 
-        let clients = JSON.parse(localStorage.getItem('franchise_clients_noln')) || defaultClients;
+        let clients = JSON.parse(localStorage.getItem('franchise_clients_leads')) || defaultClients;
+        let capturedLeads = JSON.parse(localStorage.getItem('franchise_captured_leads')) || [];
         let isAdminAuthenticated = false;
         let pendingAction = null;
 
         function saveState() {
-            localStorage.setItem('franchise_clients_noln', JSON.stringify(clients));
+            localStorage.setItem('franchise_clients_leads', JSON.stringify(clients));
             render();
         }
 
@@ -612,7 +641,6 @@
             renderAdminView();
         }
 
-        // Render Public Grid View
         function renderPublicView() {
             const grid = document.getElementById('publicClientGrid');
             const activeClients = clients.filter(c => c.status === 'active');
@@ -629,14 +657,14 @@
                         <div class="role">${c.role}</div>
                     </div>
                     <div class="card-footer-action">
-                        <span>View Profile & Booking</span>
+                        <span>Enter Details & Book</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Open Individual Client Page / View
+        // Open Individual Client Page with Pre-Booking Lead Form
         function openClientProfile(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -651,17 +679,69 @@
                 <div class="profile-header">
                     <span class="role-badge">${client.role}</span>
                     <h2 class="gold-text" style="margin-top: 1rem;">${client.name}</h2>
-                    <p style="color: var(--text-muted); max-width: 600px; margin: 0.5rem auto 0 auto;">Schedule a 15-minute introductory consultation session to discuss franchise business ownership opportunities.</p>
+                    <p style="color: var(--text-muted); max-width: 600px; margin: 0.5rem auto 0 auto;">Provide your information below to record your booking details and proceed to the calendar.</p>
                 </div>
-                <div class="booking-section">
-                    <h3>Secure Consultation Booking</h3>
-                    <p>Select a convenient time slot from the advisor's direct calendar availability below.</p>
-                    <a href="${client.calendly}" target="_blank" class="cta-btn-gold">
-                        <i class="fa-solid fa-calendar-days"></i> Open Booking Calendar
-                    </a>
+                <div class="lead-form">
+                    <h3>Consultation Intake Form</h3>
+                    <p>Please share your details before picking an available time slot.</p>
+                    <form id="consultationForm" onsubmit="submitLeadAndRedirect(event, ${client.id}, '${client.name}', '${client.calendly}')">
+                        <div class="form-row">
+                            <label>Full Name *</label>
+                            <input type="text" id="leadName" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-row">
+                            <label>Email Address *</label>
+                            <input type="text" id="leadEmail" placeholder="name@example.com" required>
+                        </div>
+                        <div class="form-row">
+                            <label>Phone Number *</label>
+                            <input type="text" id="leadPhone" placeholder="+1 (...)" required>
+                        </div>
+                        <div class="form-row">
+                            <label>Notes / Investment Interests</label>
+                            <textarea id="leadNotes" rows="3" placeholder="Tell us briefly about your franchise interests..."></textarea>
+                        </div>
+                        <button type="submit" class="cta-btn-gold" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-calendar-check"></i> Save Details & Open Schedule
+                        </button>
+                    </form>
                 </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Capture lead info locally and redirect to Calendly
+        function submitLeadAndRedirect(event, clientId, clientName, calendlyUrl) {
+            event.preventDefault();
+            
+            const leadData = {
+                id: Date.now(),
+                advisorId: clientId,
+                advisorName: clientName,
+                name: document.getElementById('leadName').value,
+                email: document.getElementById('leadEmail').value,
+                phone: document.getElementById('leadPhone').value,
+                notes: document.getElementById('leadNotes').value,
+                timestamp: new Date().toISOString()
+            };
+
+            // Save lead locally (ready for Google Sheets webhooks / scraping sync)
+            capturedLeads.push(leadData);
+            localStorage.setItem('franchise_captured_leads', JSON.stringify(capturedLeads));
+
+            // Optional alert or instant transition to their Calendly URL
+            alert('Details recorded successfully! Redirecting to calendar availability...');
+            
+            // Append parameters to Calendly URL if supported
+            let finalUrl = calendlyUrl;
+            try {
+                const urlObj = new URL(calendlyUrl);
+                urlObj.searchParams.set('name', leadData.name);
+                urlObj.searchParams.set('email', leadData.email);
+                finalUrl = urlObj.toString();
+            } catch(e) {}
+
+            window.location.href = finalUrl;
         }
 
         function showPublicDirectory() {
@@ -670,7 +750,6 @@
             document.getElementById('publicView').style.display = 'block';
         }
 
-        // Render Admin Control Table
         function renderAdminView() {
             const tbody = document.getElementById('adminTableBody');
             
@@ -703,7 +782,6 @@
             `).join('');
         }
 
-        // Authentication & Admin Trigger Flow
         function handleAdminAccessToggle() {
             if (isAdminAuthenticated) {
                 toggleAdminView();
@@ -792,7 +870,6 @@
             document.getElementById('toggleViewBtn').innerHTML = '<i class="fa-solid fa-lock-open"></i> Admin Dashboard';
         }
 
-        // Edit Calendar URL Modal
         function openEditModal(clientId) {
             if (!isAdminAuthenticated) {
                 pendingAction = { type: 'edit_link', clientId: clientId };
@@ -828,7 +905,6 @@
             }
         }
 
-        // Initialize App on Load
         window.onload = function() {
             render();
         };
