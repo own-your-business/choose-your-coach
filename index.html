@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Franchise Advisory Network | Directory & Admin Control</title>
+    <title>Franchise Advisory Network | Advisor Profiles & Admin</title>
     
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,6 +71,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            cursor: pointer;
         }
 
         .logo-badge {
@@ -129,7 +130,7 @@
         .cta-btn-gold {
             background: linear-gradient(135deg, #D4AF37, #AA820A);
             color: #0B111E;
-            padding: 0.6rem 1.2rem;
+            padding: 0.7rem 1.5rem;
             border-radius: 6px;
             font-weight: 700;
             text-decoration: none;
@@ -138,8 +139,9 @@
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .cta-btn-gold:hover {
@@ -187,6 +189,7 @@
             justify-content: space-between;
             position: relative;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .client-card:hover {
@@ -210,44 +213,77 @@
             font-weight: 600;
         }
 
-        .client-links {
-            display: flex;
-            gap: 0.75rem;
+        .card-footer-action {
             margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--gold-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
-        .client-links a {
-            flex: 1;
+        /* Individual Client Profile Detail View */
+        .client-detail-view {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-nav {
+            margin-bottom: 2rem;
+        }
+
+        .profile-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .profile-header {
             text-align: center;
-            padding: 0.7rem;
-            border-radius: 6px;
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .profile-header h2 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-header .role-badge {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--gold-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .btn-linkedin {
-            background: rgba(10, 102, 194, 0.15);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+        .booking-section {
+            background: rgba(11, 17, 30, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
         }
 
-        .btn-linkedin:hover {
-            background: rgba(10, 102, 194, 0.3);
+        .booking-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
         }
 
-        .btn-book {
-            background: linear-gradient(135deg, #D4AF37, #AA820A);
-            color: #0B111E;
-        }
-
-        .btn-book:hover {
-            background: linear-gradient(135deg, #F3E5AB, #D4AF37);
+        .booking-section p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
         }
 
         /* Admin Dashboard View */
@@ -437,11 +473,11 @@
 
     <!-- Header -->
     <header>
-        <div class="logo-container">
+        <div class="logo-container" onclick="showPublicDirectory()">
             <div class="logo-badge">FA</div>
             <div class="logo-text">
                 <h1>Franchise <span class="gold-text">Advisors</span></h1>
-                <p>Executive Roster & Directory</p>
+                <p>Executive Directory</p>
             </div>
         </div>
         <div class="nav-actions">
@@ -458,11 +494,24 @@
             <div class="section-header">
                 <div class="gold-text" style="text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 0.5rem;">Verified Partners</div>
                 <h2>Explore Active Franchise Advisors</h2>
-                <p>Connect directly with top franchise consultants via LinkedIn or book a direct advisory session.</p>
+                <p>Select an advisor to view their complete profile details and schedule a direct consultation session.</p>
             </div>
 
             <div class="client-grid" id="publicClientGrid">
                 <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- INDIVIDUAL CLIENT PROFILE DETAIL VIEW -->
+        <div id="clientDetailView" class="client-detail-view">
+            <div class="back-nav">
+                <button class="btn-outline" onclick="showPublicDirectory()">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Directory
+                </button>
+            </div>
+
+            <div class="profile-container" id="profileContainerContent">
+                <!-- Dynamically populated client details and booking link -->
             </div>
         </div>
 
@@ -471,7 +520,7 @@
             <div class="admin-controls-bar">
                 <div>
                     <h2 style="font-size: 1.5rem;" class="gold-text">Admin Control Panel</h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Manage active roster status, archive non-paying accounts, and update calendar links.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Manage active roster status, archive accounts, and update calendar links.</p>
                 </div>
                 <button class="btn-outline" onclick="exitAdminView()" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
                     <i class="fa-solid fa-right-from-bracket"></i> Exit Admin
@@ -488,9 +537,9 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <th id="adminTableBody">
+                    <tbody id="adminTableBody">
                         <!-- Dynamically populated -->
-                    </th>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -500,7 +549,7 @@
     <div class="modal-overlay" id="passwordModal">
         <div class="modal-card">
             <h3>Admin Authentication Required</h3>
-            <p>Please enter the admin passcode to access control features or remove clients from the public directory.</p>
+            <p>Please enter the admin passcode (Palloab#01) to modify client statuses or manage settings.</p>
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" id="adminPasswordInput" placeholder="Enter password..." onkeydown="if(event.key === 'Enter') verifyPassword()">
@@ -516,7 +565,7 @@
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
             <h3 class="gold-text">Update Calendar Link</h3>
-            <p id="editClientNameSub" style="margin-bottom: 1rem;">Modify Calendly URL for advisor</p>
+            <p id="editClientNameSub" style="margin-bottom: 1rem;">Modify URL for advisor</p>
             <input type="hidden" id="editClientId">
             <div class="form-group">
                 <label>Calendly / Booking URL</label>
@@ -537,25 +586,24 @@
 
     <!-- App Logic -->
     <script>
-        // Initial Default Client Roster Dataset
+        // Default Client Dataset without LinkedIn fields
         const defaultClients = [
-            { id: 1, name: "Marc Desormeaux", role: "Franchise Consultant", linkedin: "https://www.linkedin.com/in/marc-desormeaux", calendly: "https://calendly.com/marc-desormeaux/15-min-franchise-call", status: "active" },
-            { id: 2, name: "Todd Weiss", role: "CFA Franchise Advisor", linkedin: "https://www.linkedin.com/in/toddweiss", calendly: "https://calendly.com/todd-tpf/15-min-franchise-call", status: "active" },
-            { id: 3, name: "Doug Stout", role: "Franchise Partner", linkedin: "https://www.linkedin.com/in/douglasstout", calendly: "https://calendly.com/doug-stout/15-min-franchise-call", status: "active" },
-            { id: 4, name: "Irving Chung", role: "Franchise Specialist", linkedin: "https://www.linkedin.com/in/irvingchung/", calendly: "https://calendly.com/irving-chung/15-min-franchise-call", status: "active" },
-            { id: 5, name: "Brendan Meyer", role: "CFC Franchise Consultant", linkedin: "https://www.linkedin.com/in/brendan-meyer-cfc-80790511/", calendly: "https://calendly.com/brendan-meyer-tpf/15-min-franchise-call", status: "active" },
-            { id: 6, name: "Mike Ciccarelli", role: "Franchise Strategist", linkedin: "https://www.linkedin.com/in/mike-ciccarelli-b9762a12/", calendly: "https://calendly.com/mike-ciccarelli/15-min-franchise-call", status: "active" },
-            { id: 7, name: "Robert Bernotas", role: "Senior Franchise Advisor", linkedin: "https://www.linkedin.com/in/robert-bernotas/", calendly: "https://calendly.com/bob-bernotas/15-min-franchise-call", status: "active" },
-            { id: 8, name: "Bruce Brady", role: "Atlanta Franchise Lead", linkedin: "https://www.linkedin.com/in/brucebradyatl/", calendly: "https://calendly.com/bruce-brady/15-min-franchise-call", status: "active" }
+            { id: 1, name: "Marc Desormeaux", role: "Franchise Consultant", calendly: "https://calendly.com/marc-desormeaux/15-min-franchise-call", status: "active" },
+            { id: 2, name: "Todd Weiss", role: "CFA Franchise Advisor", calendly: "https://calendly.com/todd-tpf/15-min-franchise-call", status: "active" },
+            { id: 3, name: "Doug Stout", role: "Franchise Partner", calendly: "https://calendly.com/doug-stout/15-min-franchise-call", status: "active" },
+            { id: 4, name: "Irving Chung", role: "Franchise Specialist", calendly: "https://calendly.com/irving-chung/15-min-franchise-call", status: "active" },
+            { id: 5, name: "Brendan Meyer", role: "CFC Franchise Consultant", calendly: "https://calendly.com/brendan-meyer-tpf/15-min-franchise-call", status: "active" },
+            { id: 6, name: "Mike Ciccarelli", role: "Franchise Strategist", calendly: "https://calendly.com/mike-ciccarelli/15-min-franchise-call", status: "active" },
+            { id: 7, name: "Robert Bernotas", role: "Senior Franchise Advisor", calendly: "https://calendly.com/bob-bernotas/15-min-franchise-call", status: "active" },
+            { id: 8, name: "Bruce Brady", role: "Atlanta Franchise Lead", calendly: "https://calendly.com/bruce-brady/15-min-franchise-call", status: "active" }
         ];
 
-        // Load clients from localStorage or initialize with defaults
-        let clients = JSON.parse(localStorage.getItem('franchise_clients')) || defaultClients;
+        let clients = JSON.parse(localStorage.getItem('franchise_clients_noln')) || defaultClients;
         let isAdminAuthenticated = false;
-        let pendingAction = null; // Stores action awaiting password verification
+        let pendingAction = null;
 
         function saveState() {
-            localStorage.setItem('franchise_clients', JSON.stringify(clients));
+            localStorage.setItem('franchise_clients_noln', JSON.stringify(clients));
             render();
         }
 
@@ -564,7 +612,7 @@
             renderAdminView();
         }
 
-        // Render Public Client Directory
+        // Render Public Grid View
         function renderPublicView() {
             const grid = document.getElementById('publicClientGrid');
             const activeClients = clients.filter(c => c.status === 'active');
@@ -575,24 +623,54 @@
             }
 
             grid.innerHTML = activeClients.map(c => `
-                <div class="client-card">
+                <div class="client-card" onclick="openClientProfile(${c.id})">
                     <div class="client-info">
                         <h3>${c.name}</h3>
                         <div class="role">${c.role}</div>
                     </div>
-                    <div class="client-links">
-                        <a href="${c.linkedin}" target="_blank" class="btn-linkedin">
-                            <i class="fa-brands fa-linkedin"></i> LinkedIn
-                        </a>
-                        <a href="${c.calendly}" target="_blank" class="btn-book">
-                            <i class="fa-solid fa-calendar-check"></i> Book Call
-                        </a>
+                    <div class="card-footer-action">
+                        <span>View Profile & Booking</span>
+                        <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Render Admin Table Control Panel
+        // Open Individual Client Page / View
+        function openClientProfile(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            document.getElementById('publicView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'none';
+            const detailView = document.getElementById('clientDetailView');
+            detailView.style.display = 'block';
+
+            const container = document.getElementById('profileContainerContent');
+            container.innerHTML = `
+                <div class="profile-header">
+                    <span class="role-badge">${client.role}</span>
+                    <h2 class="gold-text" style="margin-top: 1rem;">${client.name}</h2>
+                    <p style="color: var(--text-muted); max-width: 600px; margin: 0.5rem auto 0 auto;">Schedule a 15-minute introductory consultation session to discuss franchise business ownership opportunities.</p>
+                </div>
+                <div class="booking-section">
+                    <h3>Secure Consultation Booking</h3>
+                    <p>Select a convenient time slot from the advisor's direct calendar availability below.</p>
+                    <a href="${client.calendly}" target="_blank" class="cta-btn-gold">
+                        <i class="fa-solid fa-calendar-days"></i> Open Booking Calendar
+                    </a>
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showPublicDirectory() {
+            document.getElementById('clientDetailView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'none';
+            document.getElementById('publicView').style.display = 'block';
+        }
+
+        // Render Admin Control Table
         function renderAdminView() {
             const tbody = document.getElementById('adminTableBody');
             
@@ -625,13 +703,11 @@
             `).join('');
         }
 
-        // Admin Auth & Portal Toggle Flow
+        // Authentication & Admin Trigger Flow
         function handleAdminAccessToggle() {
             if (isAdminAuthenticated) {
-                // Already logged in, toggle view
-                toggleView(true);
+                toggleAdminView();
             } else {
-                // Request password before opening admin view
                 pendingAction = { type: 'open_admin' };
                 document.getElementById('passwordModal').style.display = 'flex';
                 document.getElementById('adminPasswordInput').value = '';
@@ -656,19 +732,20 @@
                 isAdminAuthenticated = true;
                 closePasswordModal();
                 
-                // Update header lock icon
                 document.getElementById('adminLockIcon').className = "fa-solid fa-lock-open";
                 document.getElementById('adminBtnText').innerText = "Admin Dashboard";
 
                 if (pendingAction) {
                     if (pendingAction.type === 'open_admin') {
-                        toggleView(true);
+                        toggleAdminView();
+                    } else if (pendingAction.type === 'edit_link') {
+                        openEditModal(pendingAction.clientId);
                     } else {
                         executeAdminAction(pendingAction.type, pendingAction.clientId);
                     }
                     pendingAction = null;
                 } else {
-                    toggleView(true);
+                    toggleAdminView();
                 }
             } else {
                 alert('Incorrect password. Access denied.');
@@ -693,19 +770,17 @@
             }
         }
 
-        function toggleView(forceAdmin = false) {
+        function toggleAdminView() {
             const publicView = document.getElementById('publicView');
+            const detailView = document.getElementById('clientDetailView');
             const adminView = document.getElementById('adminView');
             const toggleBtn = document.getElementById('toggleViewBtn');
 
-            if (adminView.style.display === 'block' && !forceAdmin) {
-                // Switch to public
-                adminView.style.display = 'none';
-                publicView.style.display = 'block';
-                toggleBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Admin Portal';
+            if (adminView.style.display === 'block') {
+                exitAdminView();
             } else {
-                // Switch to admin
                 publicView.style.display = 'none';
+                detailView.style.display = 'none';
                 adminView.style.display = 'block';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-chart-line"></i> View Directory';
             }
@@ -730,7 +805,7 @@
             if (!client) return;
 
             document.getElementById('editClientId').value = client.id;
-            document.getElementById('editClientNameSub').innerText = `Modify Calendly URL for ${client.name}`;
+            document.getElementById('editClientNameSub').innerText = `Modify booking URL for ${client.name}`;
             document.getElementById('editCalendarUrlInput').value = client.calendly;
             document.getElementById('editModal').style.display = 'flex';
         }
