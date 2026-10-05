@@ -757,7 +757,7 @@
             };
 
             // Save lead locally to localStorage
-            capturedLeads.unshift(leadData); // Add new lead to the top
+            capturedLeads.unshift(leadData);
             localStorage.setItem('franchise_captured_leads', JSON.stringify(capturedLeads));
 
             alert('Details recorded successfully! Redirecting to calendar availability...');
@@ -780,7 +780,6 @@
         }
 
         function renderAdminView() {
-            // Render Captured Leads Table
             const leadsTbody = document.getElementById('adminLeadsTableBody');
             if (capturedLeads.length === 0) {
                 leadsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No lead submissions recorded yet.</td></tr>`;
@@ -795,7 +794,6 @@
                 `).join('');
             }
 
-            // Render Advisor Roster Table
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = clients.map(c => `
                 <tr>
