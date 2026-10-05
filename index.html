@@ -224,7 +224,7 @@
             font-weight: 600;
         }
 
-        /* Individual Client Profile Detail & Lead Capture Form View */
+        /* Client Detail Form View */
         .client-detail-view {
             display: none;
             max-width: 800px;
@@ -331,12 +331,20 @@
             border: 1px solid var(--border-color);
         }
 
+        .admin-section-title {
+            font-size: 1.2rem;
+            margin: 2rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         .admin-table-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         table {
@@ -549,13 +557,38 @@
             <div class="admin-controls-bar">
                 <div>
                     <h2 style="font-size: 1.5rem;" class="gold-text">Admin Control Panel</h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Manage active roster status, archive accounts, and update calendar links.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Manage active roster status, view captured lead submissions, and update calendar links.</p>
                 </div>
                 <button class="btn-outline" onclick="exitAdminView()" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
                     <i class="fa-solid fa-right-from-bracket"></i> Exit Admin
                 </button>
             </div>
 
+            <!-- CAPTURED LEADS TABLE SECTION -->
+            <div class="admin-section-title">
+                <span class="gold-text"><i class="fa-solid fa-address-book"></i> Captured Lead Submissions</span>
+                <button class="btn-sm btn-edit" onclick="clearLeads()" style="font-size:0.75rem;">Clear All Leads</button>
+            </div>
+            <div class="admin-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Lead Name & Contact</th>
+                            <th>Advisor Booked</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminLeadsTableBody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ADVISOR ROSTER MANAGEMENT SECTION -->
+            <div class="admin-section-title">
+                <span class="gold-text"><i class="fa-solid fa-users-gear"></i> Advisor Roster Settings</span>
+            </div>
             <div class="admin-table-container">
                 <table>
                     <thead>
@@ -578,7 +611,7 @@
     <div class="modal-overlay" id="passwordModal">
         <div class="modal-card">
             <h3>Admin Authentication Required</h3>
-            <p>Please enter the admin passcode (Palloab#01) to modify client statuses or manage settings.</p>
+            <p>Please enter the admin passcode (Palloab#01) to view captured leads or modify client settings.</p>
             <div class="form-group">
                 <label>Password</label>
                 <input type="password" id="adminPasswordInput" placeholder="Enter password..." onkeydown="if(event.key === 'Enter') verifyPassword()">
@@ -664,7 +697,6 @@
             `).join('');
         }
 
-        // Open Individual Client Page with Pre-Booking Lead Form
         function openClientProfile(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -710,7 +742,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Capture lead info locally and redirect to Calendly
         function submitLeadAndRedirect(event, clientId, clientName, calendlyUrl) {
             event.preventDefault();
             
@@ -721,18 +752,16 @@
                 name: document.getElementById('leadName').value,
                 email: document.getElementById('leadEmail').value,
                 phone: document.getElementById('leadPhone').value,
-                notes: document.getElementById('leadNotes').value,
-                timestamp: new Date().toISOString()
+                notes: document.getElementById('leadNotes').value || 'None',
+                timestamp: new Date().toLocaleString()
             };
 
-            // Save lead locally (ready for Google Sheets webhooks / scraping sync)
-            capturedLeads.push(leadData);
+            // Save lead locally to localStorage
+            capturedLeads.unshift(leadData); // Add new lead to the top
             localStorage.setItem('franchise_captured_leads', JSON.stringify(capturedLeads));
 
-            // Optional alert or instant transition to their Calendly URL
             alert('Details recorded successfully! Redirecting to calendar availability...');
             
-            // Append parameters to Calendly URL if supported
             let finalUrl = calendlyUrl;
             try {
                 const urlObj = new URL(calendlyUrl);
@@ -751,8 +780,23 @@
         }
 
         function renderAdminView() {
+            // Render Captured Leads Table
+            const leadsTbody = document.getElementById('adminLeadsTableBody');
+            if (capturedLeads.length === 0) {
+                leadsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No lead submissions recorded yet.</td></tr>`;
+            } else {
+                leadsTbody.innerHTML = capturedLeads.map(l => `
+                    <tr>
+                        <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${l.timestamp}</td>
+                        <td><strong>${l.name}</strong><br><span style="font-size:0.85rem; color:var(--gold-primary);">${l.email}</span><br><span style="font-size:0.8rem; color:var(--text-muted);">${l.phone}</span></td>
+                        <td><span style="color: #fff; font-weight:600;">${l.advisorName}</span></td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">${l.notes}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render Advisor Roster Table
             const tbody = document.getElementById('adminTableBody');
-            
             tbody.innerHTML = clients.map(c => `
                 <tr>
                     <td><strong>${c.name}</strong><br><span style="font-size:0.8rem; color:var(--text-muted);">${c.role}</span></td>
@@ -780,6 +824,14 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        function clearLeads() {
+            if (confirm('Are you sure you want to clear all captured leads?')) {
+                capturedLeads = [];
+                localStorage.removeItem('franchise_captured_leads');
+                renderAdminView();
+            }
         }
 
         function handleAdminAccessToggle() {
@@ -861,6 +913,7 @@
                 detailView.style.display = 'none';
                 adminView.style.display = 'block';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-chart-line"></i> View Directory';
+                renderAdminView();
             }
         }
 
